@@ -21,7 +21,7 @@ class ChatBot():
         self.thing_knowed = [
             "1 - Qual o nome completo do Luan?\n",
             "2 - Quando o Luan nasceu?\n",
-            "3 - Onde ele estuda?\n"
+            "3 - Onde ele estuda?\n",
             "4 - Qual o nome da mãe do Luan?\n"
         ]
         self.answers = [
@@ -30,11 +30,11 @@ class ChatBot():
             'Instituto Politécnico Do Estado Do Rio De Janeiro - IPRJ é o campus da Universidade do Estado do Rio de Janeiro em Nova Friburgo.',
             'Jozelma.'
         ]
-        self.week_days = ["HOJE", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
+        self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
         ##pane-side > div:nth-child(1) > div > div > div:nth-child(9) > div > div > div.TbtXF
         #span[class='_38M1B']
-        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
+        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(10) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
@@ -64,19 +64,22 @@ class ChatBot():
         
         if last_msg in welcome_msg:
             self.send_message()
+            time.sleep(5)
+            self.send_message(self.thing_knowed)            
         elif last_msg != welcome_msg:
             self.send_message()
             time.sleep(5)
             self.send_message(self.thing_knowed)
-        time.sleep(15)
+        time.sleep(60)
         self.get_new_message(False)
         
         last_msg = self.last_client_msg.get(self.person_name).casefold()
+        last_msg = last_msg.replace(last_msg[len(last_msg) - 8:], '')
         pprint.pprint(last_msg)
-        
         for i in range(len(self.thing_knowed)):
-            print(last_msg.endswith(self.thing_knowed[i][len(last_msg) - 3 : ]))
-            if last_msg.startswith(self.thing_knowed[i][0]) or last_msg.endswith(self.thing_knowed[i][-4:]):
+            #print(last_msg.endswith(self.thing_knowed[i][len(last_msg) - 3 : ]))
+            if last_msg.startswith(self.thing_knowed[i][0]) or last_msg.endswith(self.thing_knowed[i][-9:-1]):
+                print("oiii")
                 self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
 
 
@@ -91,7 +94,7 @@ class ChatBot():
         except NoSuchElementException:
             pass
     
-    def send_message(self, message = ['Olá, sou a Natália, assistente virtual do Whatsapp do Luan. Vou te mostrar algumas coisas que sei fazer.']):
+    def send_message(self, message = ['Olá, sou Ultron, assistente virtual do Whatsapp do mais. Vou te mostrar algumas coisas que sei fazer.']):
         if self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")):
             print("Entrei")
             self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).click()
