@@ -11,31 +11,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 import os
 import pprint
 from operator import ne, eq
-class ChatBot():
+class ChatBot(object):
+
     # O local de execução do nosso script
     dir_path = os.getcwd()
     # O caminho do chromedriver
     chromedriver = os.path.join(dir_path, "chromedriver.exe")
     # Caminho onde será criada pasta profile
     profile = os.path.join(dir_path, "profile", "wpp")
-    def __init__(self):
+    def __init__(self, data_file):
         
-        self.thing_knowed = [
-            "1 - Qual o nome completo do Luan?\n",
-            "2 - Quando o Luan nasceu?\n",
-            "3 - Onde ele estuda?\n",
-            "4 - Qual o nome da mãe do Luan?\n"
-        ]
-        self.answers = [
-            'Luan Rodrigues Soares de Souza.',
-            '26 de janeiro de 2000.',
-            'Instituto Politécnico Do Estado Do Rio De Janeiro - IPRJ é o campus da Universidade do Estado do Rio de Janeiro em Nova Friburgo.',
-            'Jozelma Rodrigues Soares de Souza.'
-        ]
+        self.readFile(data_file)
         self.last_thing_knowed = self.thing_knowed[-1].replace(self.thing_knowed[-1][len(self.thing_knowed[-1]) - 1:], '').casefold()
         self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
-        ##pane-side > div:nth-child(1) > div > div > div:nth-child(9) > div > div > div.TbtXF
+        
         #span[class='_38M1B']
         self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
@@ -43,7 +33,6 @@ class ChatBot():
                     "lasts_user_msg" : "#main",
                     "client_name": "#main > header > div._2uaUb > div > div > span"}
         # Inicializa o webdriver
-        #<div tabindex="-1" class="_1JAUF _2x4bz"><div class="OTBsx" style="visibility: visible;">Digite uma mensagem</div><div class="_2_1wd copyable-text selectable-text" contenteditable="true" data-tab="6" dir="ltr" spellcheck="true"></div></div>
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install())
         # Abre o whatsappweb
@@ -77,7 +66,7 @@ class ChatBot():
                 if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
                     self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
         time.sleep(5)
-        self.send_message(['Posso ajudar em mais alguma coisa?'])
+        self.send_message([self.need_more_help])
         more_help = ['sim', 's', 'simmm', 'simm']
         no_more_help = ['nao', 'não', 'n']
         messages = self.get_new_message()
@@ -123,7 +112,7 @@ class ChatBot():
         time.sleep(10)
         self.aux = 0
         #while self.session_status:
-         #   if self.aux == 0:
+        #   if self.aux == 0:
         messages = self.routineOfSession(messages, ne)
         time.sleep(5)
         self.doubtOrNot(messages)
@@ -134,7 +123,7 @@ class ChatBot():
     def doubtOrNot(self, messages):
         if messages[-1].startswith('s'):
             print("estou em if messages[-1].startswith('s')")
-            self.send_message(['Qual seria a dúvida? Vou te lembrar de algumas coisas que sei fazer.'])
+            self.send_message([self.doubt])
             time.sleep(5)
             self.send_message(self.thing_knowed)
             messages = self.get_new_message()
@@ -143,7 +132,7 @@ class ChatBot():
             return
         elif messages[-1].startswith('n'):
             print("estou em elif messages[-1].startswith('n')")
-            self.send_message(['Muito obrigado pelo contato e tenha um ótimo dia!'])
+            self.send_message([self.bye])
             self.session_status = False
             self.CloseSession()
             return
@@ -166,7 +155,9 @@ class ChatBot():
         except NoSuchElementException:
             pass
     
-    def send_message(self, message = ['Olá, sou Ultron, assistente virtual do Whatsapp do Luan. Vou te mostrar algumas coisas que sei fazer.']):
+    def send_message(self, message = None):
+        if message is None:
+            message = self.hello_msg
         if self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")):
             print("Entrei")
             self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).click()
@@ -226,8 +217,32 @@ class ChatBot():
         for i in range(len(time)):
             message.append((string[i] + " [" + time[i] + "]").casefold())
         return message
-
-zapBot = ChatBot()
+    def readFile(self, data_file):
+        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+        my_file = os.path.join(THIS_FOLDER, data_file)
+        with open(my_file, 'r', encoding= 'utf8', errors='ignore') as f:
+            data = f.readlines()
+        list = []
+        for row in data:
+            if not row.startswith('#') and not row.startswith('\n'):
+                list.append(row.strip())
+        
+        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.bye = list
+        self.thing_knowed = []
+        self.answers = []
+        for thing in thing_knowed:
+            if not thing.startswith("R:"):
+                self.thing_knowed.append(thing + '\n')
+            else:
+                
+                thing = thing.replace(thing[:7], '')
+                
+                self.answers.append(thing)
+        
+        
+data_file = 'data.txt'
+zapBot = ChatBot(data_file)
 zapBot.is_new_message()
+
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
