@@ -1,0 +1,26 @@
+#Arquivo .txt exemplo para utilização ChatBot.
+#Mensagem de boas vindas ao cliente.
+Olá, sou Chico, um assistente virtual. Sou capaz de realizar algumas tarefas.
+#Perguntas que o ChatBot é capaz de responder.
+#Novas habilidades serão implementadas futuramente.
+1 - Quando o Brasil foi descoberto?
+2 - De onde é a invenção do chuveiro elétrico?
+3 - Quantas casas decimais tem o número pi?
+4 - Quanto tempo a luz do Sol demora para chegar à Terra?
+#Respostas para as perguntas
+R: 1 - O dia 22 de abril é marcado em nosso país como o “dia do descobrimento do Brasil”, ou seja, o dia que os portugueses chegaram aqui, no ano de 1500.
+
+R: 2 - Brasil. Francisco Canhos é o nome do homem que, na década de 40, desenvolveu o primeiro chuveiro elétrico seguro em Jaú-SP. O aparelho vinha sendo desenvolvido desde os anos 30, mas apresentava riscos de curto-circuito.
+
+R: 3 - Infinitas. Ao longo dos tempos, vários estudiosos têm se dedicado a calcular o número pi e já chegaram ao número de 5 bilhões de casas.
+
+R: 4 - 8 minutos.Essa é uma questão que se fundamenta na ótica. Ela é calculada com base na distância do Sol em relação à Terra, que é de aproximadamente 150 000 000 km, considerando que a velocidade da luz no vácuo é 300 000 Km/s. 150 000 000 dividido por 300 000 é igual a 500 segundos, ou seja, 8,33 minutos.
+
+#Mensagem de verificação para saber se o cliente possui mais alguma dúvida.
+Posso ajudar em mais alguma coisa?
+
+#Se o cliente tiver mais alguma dúvida, mensagem para perguntar qual seria essa duvida e relembrar das coisas que o ChatBot sabe fazer.
+Qual seria a dúvida? Vou te lembrar de algumas coisas que sei fazer.
+
+#Se o cliente não tiver mais dúvidas, mensagem de despedida.
+Muito obrigado pelo contato e tenha um ótimo dia!
