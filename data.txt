@@ -1,6 +1,6 @@
 #Arquivo .txt exemplo para utilização ChatBot.
 #Mensagem de boas vindas ao cliente.
-Olá, sou Chico, um assistente virtual. Sou capaz de realizar algumas tarefas.
+Olá, sou Chico, um assistente virtual. Vou te mostrar algumas coisas que sei fazer.
 #Perguntas que o ChatBot é capaz de responder.
 #Novas habilidades serão implementadas futuramente.
 1 - Quando o Brasil foi descoberto?
