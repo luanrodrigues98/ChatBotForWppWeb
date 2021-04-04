@@ -1,4 +1,8 @@
 import time 
+import os
+import pprint
+from operator import ne, eq
+
 #pip install selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -6,19 +10,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+
 #pip install webdriver-manager
 from webdriver_manager.chrome import ChromeDriverManager
-import os
-import pprint
-from operator import ne, eq
+
 class ChatBot(object):
 
-    # O local de execução do nosso script
-    dir_path = os.getcwd()
-    # O caminho do chromedriver
-    chromedriver = os.path.join(dir_path, "chromedriver.exe")
-    # Caminho onde será criada pasta profile
-    profile = os.path.join(dir_path, "profile", "wpp")
     def __init__(self, data_file):
         
         self.readFile(data_file)
@@ -26,8 +23,8 @@ class ChatBot(object):
         self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
         
-        #span[class='_38M1B']
-        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
+        #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
+        self.css = {"new_message" : "span[class='_38M1B']",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
@@ -39,8 +36,9 @@ class ChatBot(object):
         self.driver.get("https://web.whatsapp.com/")
         self.driver.maximize_window()
         # Aguarda alguns segundos para validação manual do QrCode
-        self.driver.implicitly_wait(15)
+        self.driver.implicitly_wait(30)
     
+    #Método responsavel por abrir o ultimo chat com uma nova mensangem
     def openLastChat(self, status):
         if (status == True):
             self.driver.find_element(By.CSS_SELECTOR, self.css.get("new_message")).click()
@@ -49,7 +47,8 @@ class ChatBot(object):
             self.openSession(data)
         else:
             self.is_new_message()
-            
+    
+    #Método responsavel por verificar se o cliente tem alguma duvida.
     def routineOfSession(self, messages, op):
         while op(messages[-1], self.last_thing_knowed):
             print("messages[-1] != self.last_thing_knowed")
@@ -86,7 +85,8 @@ class ChatBot(object):
         messages = self.get_new_message()
         self.doubtOrNot(messages)
         return messages
-        
+    
+    #Método responsavel por abrir uma nova sessão para o atendimento de um cliente.
     def openSession(self, messages = []):
         
         self.session_status = True
@@ -120,6 +120,7 @@ class ChatBot(object):
 
     # self.aux = self.aux + 1
 
+    #Método responsavel por verificar se o cliente possui alguma dúvida.
     def doubtOrNot(self, messages):
         if messages[-1].startswith('s'):
             print("estou em if messages[-1].startswith('s')")
@@ -136,6 +137,7 @@ class ChatBot(object):
             self.session_status = False
             self.CloseSession()
             return
+    #Metodo responsavel por fechar a sessão de atendimento
     def CloseSession(self):
         if self.session_status == False:
             self.is_new_message()
@@ -143,7 +145,7 @@ class ChatBot(object):
         else:
             pass
 
-
+    #Metodo responsavel por verificar se existe alguma mensagem
     def is_new_message(self):
         #<span class="_38M1B" aria-label="6 mensagens não lidas">6</span>
         #pane-side > div:nth-child(1) > div > div > div:nth-child(10) > div > div > div.TbtXF > div._1SjZ2 > div._15smv > span:nth-child(1) > div > span
@@ -154,7 +156,7 @@ class ChatBot(object):
                 self.is_new_message()
         except NoSuchElementException:
             pass
-    
+    #Metodo responsavel por enviar uma mensagem
     def send_message(self, message = None):
         if message is None:
             message = self.hello_msg
@@ -167,11 +169,12 @@ class ChatBot(object):
             #self.is_new_message()
         else: 
             print("nao entrei")
-
+    #Metodo responsavel por receber as ultimas mensagens.
     def get_new_message(self):
         if self.driver.find_element(By.CSS_SELECTOR, self.css.get("lasts_user_msg")):
             msg = self.driver.find_element(By.CSS_SELECTOR, self.css.get("lasts_user_msg")).text
             list_today_msg = msg.splitlines()
+        #pprint.pprint(list_today_msg)
         self.person_name = list_today_msg[0]
         list_today_msg.pop(0)
         list_today_msg.pop(-1)
@@ -180,7 +183,7 @@ class ChatBot(object):
 
 
 
-
+    #Manipulação da lista de strings de ultimas mensagens
     def handler_string(self, string):
         import re
         from datetime import datetime
@@ -240,9 +243,6 @@ class ChatBot(object):
                 self.answers.append(thing)
         
         
-data_file = 'data.txt'
-zapBot = ChatBot(data_file)
-zapBot.is_new_message()
 
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
