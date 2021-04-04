@@ -1,7 +1,8 @@
 from ChatBot import ChatBot
 
 def main():
-    wppBot = ChatBot()
-    wppBot.openLastChat()
+    data_file = 'data.txt'
+    zapBot = ChatBot(data_file)
+    zapBot.is_new_message()
 
 if __name__ == "__main__": main()
