@@ -24,7 +24,7 @@ class ChatBot(object):
         self.session_status = False
         
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
-        self.css = {"new_message" : "span[class='_38M1B']",
+        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
@@ -60,12 +60,19 @@ class ChatBot(object):
         time.sleep(5)
         messages = self.get_new_message()
         messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')           
+        while messages[-1] == self.last_thing_knowed:
+            print("Estou em while messages[-1] == self.last_thing_knowed")
+            time.sleep(5)
+            messages = self.get_new_message()
+            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')  
         if messages[-1] != self.last_thing_knowed:
             for i in range(len(self.thing_knowed)):
                 if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
                     self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
         time.sleep(5)
+        
         self.send_message([self.need_more_help])
+        
         more_help = ['sim', 's', 'simmm', 'simm']
         no_more_help = ['nao', 'não', 'n']
         messages = self.get_new_message()
@@ -243,6 +250,8 @@ class ChatBot(object):
                 self.answers.append(thing)
         
         
-
+data_file = 'data.txt'
+zapBot = ChatBot(data_file)
+zapBot.is_new_message()
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
