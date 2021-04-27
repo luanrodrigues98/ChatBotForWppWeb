@@ -18,7 +18,7 @@ from unidecode import unidecode
 
 class ChatBot(object):
 
-    def __init__(self, data_file):
+    def __init__(self, data_file, test):
         
         self.readFile(data_file)
         self.last_thing_knowed = self.thing_knowed[-1].replace(self.thing_knowed[-1][len(self.thing_knowed[-1]) - 1:], '').casefold()
@@ -26,12 +26,14 @@ class ChatBot(object):
         self.session_status = False
         
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
-        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
+        self.css = {"new_message" : "span[class='_38M1B']",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
                     "client_name": "#main > header > div._2uaUb > div > div > span",
                     "search_box" : "#side > div.SgIJV > div > label > div > div._2_1wd.copyable-text.selectable-text"}
+        if test != "s":
+            self.css.update({"new_message": str(test)})
         # Inicializa o webdriver
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install())
@@ -39,7 +41,8 @@ class ChatBot(object):
         self.driver.get("https://web.whatsapp.com/")
         self.driver.maximize_window()
         # Aguarda alguns segundos para validação manual do QrCode
-        self.driver.implicitly_wait(30)
+        input("Aperte Enter quando terminar a validação com o QR Code")
+        #self.driver.implicitly_wait(30)
     
     #Método responsavel por abrir o ultimo chat com uma nova mensangem
     def openLastChat(self, status):
@@ -305,8 +308,8 @@ class ChatBot(object):
         
         
         
-data_file = 'data.txt'
-zapBot = ChatBot(data_file)
-zapBot.is_new_message()
+#data_file = 'data.txt'
+#zapBot = ChatBot(data_file)
+#zapBot.is_new_message()
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
