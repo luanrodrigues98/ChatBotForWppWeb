@@ -14,6 +14,8 @@ from selenium.common.exceptions import NoSuchElementException
 #pip install webdriver-manager
 from webdriver_manager.chrome import ChromeDriverManager
 
+from unidecode import unidecode
+
 class ChatBot(object):
 
     def __init__(self, data_file):
@@ -28,8 +30,12 @@ class ChatBot(object):
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
-                    "client_name": "#main > header > div._2uaUb > div > div > span"}
+                    "client_name": "#main > header > div._2uaUb > div > div > span",
+                    "search_box" : "#side > div.SgIJV > div > label > div > div._2_1wd.copyable-text.selectable-text"}
+        #pprint.pprint(self.thing_knowed)
+        #pprint.pprint(self.answers[-1])
         # Inicializa o webdriver
+        
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install())
         # Abre o whatsappweb
@@ -47,11 +53,16 @@ class ChatBot(object):
             self.openSession(data)
         else:
             self.is_new_message()
-    
+    def getHuman(self, person):
+        self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).click()
+        self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(self.group_name)
+        self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(Keys.ENTER)
+        self.send_message(str(person) + self.help_msg + str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
+        time.sleep(5)
     #Método responsavel por verificar se o cliente tem alguma duvida.
     def routineOfSession(self, messages, op):
-        while op(messages[-1], self.last_thing_knowed):
-            print("messages[-1] != self.last_thing_knowed")
+        while op(messages[-1], unidecode(self.last_thing_knowed)):
+            print("messages[-1] != unidecode(self.last_thing_knowed)")
             time.sleep(5)
             messages = self.get_new_message()
             messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
@@ -59,16 +70,36 @@ class ChatBot(object):
             #print("Messages[-1] no while = ", messages[-1])
         time.sleep(5)
         messages = self.get_new_message()
-        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')           
-        while messages[-1] == self.last_thing_knowed:
-            print("Estou em while messages[-1] == self.last_thing_knowed")
+        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        count_loops = 0 
+        while messages[-1] == unidecode(self.last_thing_knowed):
+            print("Estou em while messages[-1] == unidecode(self.last_thing_knowed) e count_loops = ", count_loops)
             time.sleep(5)
             messages = self.get_new_message()
-            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')  
-        if messages[-1] != self.last_thing_knowed:
+            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+            count_loops = count_loops + 1
+            if count_loops == 12:
+                #print("estou em if count_loops == 12")
+                break
+        if count_loops == 12:
+            print("estou em if count_loops == 12 fora do while")
+            self.session_status = False
+            self.CloseSession()
+
+        if messages[-1] != unidecode(self.last_thing_knowed):
+            '''print("estou dentro de if messages[-1] != unidecode(self.last_thing_knowed) ")
+            print("  messages[-1] = ",  messages[-1])
+            print("unidecode(self.last_thing_knowed)", unidecode(self.last_thing_knowed))'''
             for i in range(len(self.thing_knowed)):
+                print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
+                print("self.answers[int(self.thing_knowed[i][0]) - 1] = ", self.answers[int(self.thing_knowed[i][0]) - 1])
                 if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
                     self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
+                if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
+                    print("entrei em if especifico do atendente")
+                    self.getHuman(self.person_name)
+                    self.session_status = False
+                    self.CloseSession()
         time.sleep(5)
         
         self.send_message([self.need_more_help])
@@ -80,14 +111,22 @@ class ChatBot(object):
         time.sleep(5)
         print("Messages[-1] fora do segundo while = ", messages[-1])
         #print("(messages[-1] in (more_help or no_more_help)), fora do segundo while = ", not messages[-1] in (more_help or no_more_help))
+        count_loops = 0 
         while (not messages[-1] in more_help) and (not messages[-1] in no_more_help):
             print("estou em not messages[-1] in (more_help or no_more_help)")
             time.sleep(5)
             messages = self.get_new_message()
             messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+            count_loops = count_loops + 1
+            if count_loops == 12:
+                #print("estou em if count_loops == 12")
+                break
             print("Messages[-1] no segundo while = ", messages[-1])
             #print("not messages[-1] in (more_help or no_more_help)), dentro do segundo while = ", not messages[-1] in (more_help or no_more_help))    
-        
+        if count_loops == 12:
+            print("estou em if count_loops == 12 fora do while")
+            self.session_status = False
+            self.CloseSession()
         time.sleep(5)
         messages = self.get_new_message()
         self.doubtOrNot(messages)
@@ -114,7 +153,7 @@ class ChatBot(object):
         messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
         ###################################################################################
         #messages = self.routineOfSession(messages)
-        print(messages[-1])
+        print("estou em open session = ", messages[-1])
         more_help = ['sim', 's', 'simmm', 'simm']    
         time.sleep(10)
         self.aux = 0
@@ -186,6 +225,14 @@ class ChatBot(object):
         list_today_msg.pop(0)
         list_today_msg.pop(-1)
         data = self.handler_string(list_today_msg)
+        for i in range(len(data)):
+            data[i] = unidecode(data[i])
+        
+        
+        #
+        # print("----- imprimindo data--------")
+        #pprint.pprint(data)
+        #print("----- imprimindo data--------")
         return data
 
 
@@ -205,6 +252,7 @@ class ChatBot(object):
                     time.append(i)
                     string.pop(aux)
         for i in string:
+            
             if len(i) == 4:
                 if audio.match(i):
                     aux = string.index(i)
@@ -233,21 +281,28 @@ class ChatBot(object):
         with open(my_file, 'r', encoding= 'utf8', errors='ignore') as f:
             data = f.readlines()
         list = []
+        #pprint.pprint(data)
         for row in data:
             if not row.startswith('#') and not row.startswith('\n'):
+                #print("row = ", row)
+                #print("row.strip() = ", row.strip())
                 list.append(row.strip())
-        
-        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.bye = list
+        #pprint.pprint(list)
+        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.bye = list
         self.thing_knowed = []
         self.answers = []
+        #pprint.pprint(thing_knowed)
         for thing in thing_knowed:
+            #print("thing no for = ", thing)
             if not thing.startswith("R:"):
                 self.thing_knowed.append(thing + '\n')
+                #print("thing no if  = ", thing)
             else:
-                
+                #print("thing no else  = ", thing)
                 thing = thing.replace(thing[:7], '')
                 
                 self.answers.append(thing)
+        
         
         
 data_file = 'data.txt'
