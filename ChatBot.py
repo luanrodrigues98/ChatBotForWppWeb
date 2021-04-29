@@ -18,118 +18,144 @@ from unidecode import unidecode
 
 class ChatBot(object):
 
-    def __init__(self, data_file, test):
+    def __init__(self, data_file):
         
         self.readFile(data_file)
-        self.last_thing_knowed = self.thing_knowed[-1].replace(self.thing_knowed[-1][len(self.thing_knowed[-1]) - 1:], '').casefold()
+        self.last_thing_knowed = self.thing_knowed[-1].casefold()
         self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
         
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
-        self.css = {"new_message" : "span[class='_38M1B']",
+        ##pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span
+        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
                     "client_name": "#main > header > div._2uaUb > div > div > span",
                     "search_box" : "#side > div.SgIJV > div > label > div > div._2_1wd.copyable-text.selectable-text"}
-        if test != "s":
-            self.css.update({"new_message": str(test)})
+        #pprint.pprint(self.thing_knowed)
+        #pprint.pprint(self.answers[-1])
         # Inicializa o webdriver
+        
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install())
         # Abre o whatsappweb
         self.driver.get("https://web.whatsapp.com/")
         self.driver.maximize_window()
         # Aguarda alguns segundos para validação manual do QrCode
-        input("Aperte Enter quando terminar a validação com o QR Code")
-        #self.driver.implicitly_wait(30)
+        self.driver.implicitly_wait(30)
     
     #Método responsavel por abrir o ultimo chat com uma nova mensangem
     def openLastChat(self, status):
         if (status == True):
             self.driver.find_element(By.CSS_SELECTOR, self.css.get("new_message")).click()
-            time.sleep(5)
+            time.sleep(2)
             data = self.get_new_message()
             self.openSession(data)
         else:
             self.is_new_message()
-    #Método responsavel por chamar a ajuda de um humano
     def getHuman(self, person):
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).click()
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(self.group_name)
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(Keys.ENTER)
-        self.send_message(str(person) + self.help_msg + str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
-        time.sleep(5)
-    
-    #Método responsavel por efetuar os passos que ocorreram durante a sessão
-    def routineOfSession(self, messages, op):
-        while op(messages[-1], unidecode(self.last_thing_knowed)):
-            #print("messages[-1] != unidecode(self.last_thing_knowed)")
-            time.sleep(5)
-            messages = self.get_new_message()
-            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-            #print("messages[-1] != self.last_thing_knowed, no while = ", (messages[-1] != self.last_thing_knowed))
-            #print("Messages[-1] no while = ", messages[-1])
-        time.sleep(5)
-        messages = self.get_new_message()
-        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-        count_loops = 0 
-        while messages[-1] == unidecode(self.last_thing_knowed):
-            #print("Estou em while messages[-1] == unidecode(self.last_thing_knowed) e count_loops = ", count_loops)
-            time.sleep(5)
-            messages = self.get_new_message()
-            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-            count_loops = count_loops + 1
-            if count_loops == 12:
-                #print("estou em if count_loops == 12")
-                break
-        if count_loops == 12:
-            #print("estou em if count_loops == 12 fora do while")
-            self.session_status = False
-            self.CloseSession()
-
+        self.send_message(str(person) +" "+ self.help_msg +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
+        time.sleep(2)
+    #Método responsavel por verificar se o cliente tem alguma duvida.
+    def send_answer(self, messages):
         if messages[-1] != unidecode(self.last_thing_knowed):
-            '''print("estou dentro de if messages[-1] != unidecode(self.last_thing_knowed) ")
-            print("  messages[-1] = ",  messages[-1])
-            print("unidecode(self.last_thing_knowed)", unidecode(self.last_thing_knowed))'''
             for i in range(len(self.thing_knowed)):
-                print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
-                print("self.answers[int(self.thing_knowed[i][0]) - 1] = ", self.answers[int(self.thing_knowed[i][0]) - 1])
+                #print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
+                #print("self.answers[int(self.thing_knowed[i][0]) - 1] = "+ str(self.answers[int(self.thing_knowed[i][0]) - 1]) +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())]))
                 if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
                     self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
                 if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
+                    self.send_message(self.answers[-1])
                     print("entrei em if especifico do atendente")
                     self.getHuman(self.person_name)
                     self.session_status = False
                     self.CloseSession()
-        time.sleep(5)
-        
-        self.send_message([self.need_more_help])
-        
-        more_help = ['sim', 's', 'simmm', 'simm']
-        no_more_help = ['nao', 'não', 'n']
+
+    def routineOfSession(self, messages, op):
+        print("entrei em routineOfSession:")
+        print(messages[-1])
+        print(self.last_thing_knowed)
+        print(messages[-1] == unidecode(self.last_thing_knowed))
+        print("entrei em routineOfSession:")
+        '''
+        while op(messages[-1], unidecode(self.last_thing_knowed)):
+            print("messages[-1] != unidecode(self.last_thing_knowed)")
+            time.sleep(1)
+            messages = self.get_new_message()
+            #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+            print("messages[-1] != self.last_thing_knowed, no while = ", (messages[-1] != self.last_thing_knowed))
+            print("Messages[-1] no while = ", messages[-1])
+            
+        '''
+        time.sleep(1)
         messages = self.get_new_message()
-        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-        time.sleep(5)
-        #print("Messages[-1] fora do segundo while = ", messages[-1])
-        #print("(messages[-1] in (more_help or no_more_help)), fora do segundo while = ", not messages[-1] in (more_help or no_more_help))
+        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
         count_loops = 0 
-        while (not messages[-1] in more_help) and (not messages[-1] in no_more_help):
-            #print("estou em not messages[-1] in (more_help or no_more_help)")
+        while messages[-1] == unidecode(self.last_thing_knowed):
+            print("Estou em while messages[-1] == unidecode(self.last_thing_knowed) e count_loops = ", count_loops)
             time.sleep(5)
             messages = self.get_new_message()
-            messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+            #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
             count_loops = count_loops + 1
             if count_loops == 12:
                 #print("estou em if count_loops == 12")
                 break
-            #print("Messages[-1] no segundo while = ", messages[-1])
-            #print("not messages[-1] in (more_help or no_more_help)), dentro do segundo while = ", not messages[-1] in (more_help or no_more_help))    
         if count_loops == 12:
-            #print("estou em if count_loops == 12 fora do while")
+            print("estou em if count_loops == 12 fora do while")
             self.session_status = False
             self.CloseSession()
-        time.sleep(5)
+        
+        self.send_answer(messages)
+        '''
+        if messages[-1] != unidecode(self.last_thing_knowed):
+            for i in range(len(self.thing_knowed)):
+                print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
+                print("self.answers[int(self.thing_knowed[i][0]) - 1] = "+ str(self.answers[int(self.thing_knowed[i][0]) - 1]) +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())]))
+                if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
+                    self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
+                if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
+                    self.send_message(self.answers[-1])
+                    print("entrei em if especifico do atendente")
+                    self.getHuman(self.person_name)
+                    self.session_status = False
+                    self.CloseSession()
+        '''
+        time.sleep(1)
+        
+        self.send_message([self.need_more_help])
+        
+        more_help = ['sim', 's', 'simmm', 'simm', 'pode']
+        no_more_help = ['nao', 'não', 'n']
+        messages = self.get_new_message()
+        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        time.sleep(1)
+        print("Messages[-1] fora do segundo while = ", messages[-1])
+        #print("(messages[-1] in (more_help or no_more_help)), fora do segundo while = ", not messages[-1] in (more_help or no_more_help))
+        
+        
+        while ((not messages[-1] in more_help) and (not messages[-1] in no_more_help) and
+                (not bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) and
+                not bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])])):
+            print("estou em not messages[-1] in (more_help or no_more_help)")
+            time.sleep(5)
+            messages = self.get_new_message()
+            #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+            count_loops = count_loops + 1
+            if count_loops == 12:
+                #print("estou em if count_loops == 12")
+                break
+            print("Messages[-1] no segundo while = ", messages[-1])
+            #print("not messages[-1] in (more_help or no_more_help)), dentro do segundo while = ", not messages[-1] in (more_help or no_more_help))    
+        if count_loops == 12:
+            print("estou em if count_loops == 12 fora do while")
+            self.session_status = False
+            self.CloseSession()
+        
+        time.sleep(1)
         messages = self.get_new_message()
         self.doubtOrNot(messages)
         return messages
@@ -138,30 +164,24 @@ class ChatBot(object):
     def openSession(self, messages = []):
         
         self.session_status = True
-        #print("self.last_thing_knowed = ", self.last_thing_knowed)
+        print("self.last_thing_knowed = ", self.last_thing_knowed)
         #messages = self.get_new_message()
         #pprint.pprint(messages)
-        welcome_msg = ['oi', 'olá', 'oii', 'oiii', 'ola', 'olaa', 'olaaa']
-        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-        if messages[-1] in welcome_msg:
-            self.send_message()
-            time.sleep(5)
-            self.send_message(self.thing_knowed)            
-        elif messages[-1] != welcome_msg:
-            self.send_message()
-            time.sleep(5)
-            self.send_message(self.thing_knowed)
+        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        self.send_message(self.thing_knowed)
         messages = self.get_new_message()
-        messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        ###################################################################################
         #messages = self.routineOfSession(messages)
-        #print("estou em open session = ", messages[-1])
+        print("estou em open session = ", messages[-1])
         more_help = ['sim', 's', 'simmm', 'simm']    
-        time.sleep(10)
+        time.sleep(2)
         self.aux = 0
         #while self.session_status:
         #   if self.aux == 0:
+        print("vou chamar routineofsession de dentro de openSession")
         messages = self.routineOfSession(messages, ne)
-        time.sleep(5)
+        time.sleep(3)
         self.doubtOrNot(messages)
     #  else:
 
@@ -169,17 +189,21 @@ class ChatBot(object):
 
     #Método responsavel por verificar se o cliente possui alguma dúvida.
     def doubtOrNot(self, messages):
-        if messages[-1].startswith('s'):
-            #print("estou em if messages[-1].startswith('s')")
-            self.send_message([self.doubt])
-            time.sleep(5)
-            self.send_message(self.thing_knowed)
+        if ((messages[-1] in ['sim', 'pode', 's']) or messages[-1].startswith('s')):
+            print("estou em if messages[-1].startswith('s')")
+            self.send_message(self.thing_knowed, True)
             messages = self.get_new_message()
             self.routineOfSession(messages, eq)
             self.session_status = True
             return
+        elif ((bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) or
+            bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])])):
+                self.send_answer(messages)
+                self.routineOfSession(messages, eq)
+                self.session_status = True
+                return
         elif messages[-1].startswith('n'):
-            #print("estou em elif messages[-1].startswith('n')")
+            print("estou em elif messages[-1].startswith('n')")
             self.send_message([self.bye])
             self.session_status = False
             self.CloseSession()
@@ -204,20 +228,30 @@ class ChatBot(object):
         except NoSuchElementException:
             pass
     #Metodo responsavel por enviar uma mensagem
-    def send_message(self, message = None):
+    def send_message(self, message = None, help1 = False):
         if message is None:
             message = self.hello_msg
         if self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")):
-            #print("Entrei")
+            print("Entrei")
             self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).click()
-            self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(message)
-            self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(Keys.ENTER)
-            time.sleep(5)
+            if message != self.thing_knowed:
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(message)
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(Keys.ENTER)
+            elif (message == self.thing_knowed) and (help1 == True):
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(self.doubt + '\ue008' + '\ue007' )
+                for i in range(len(message)):
+                    self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(message[i] + '\ue008' + '\ue007' )#+ '\ue00a' + '\ue007'
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(Keys.ENTER)
+                
+            else: 
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(self.hello_msg + '\ue008' + '\ue007')#+ '\ue00a' + '\ue007'
+                for i in range(len(message)):
+                    self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(message[i] + '\ue008' + '\ue007' )#+ '\ue00a' + '\ue007'
+                self.driver.find_element(By.CSS_SELECTOR, self.css.get("chat_box")).send_keys(Keys.ENTER)
+            time.sleep(2)
             #self.is_new_message()
-        else:
-            import sys
-            sys.exit()
-            #print("nao entrei")
+        else: 
+            print("nao entrei")
     #Metodo responsavel por receber as ultimas mensagens.
     def get_new_message(self):
         if self.driver.find_element(By.CSS_SELECTOR, self.css.get("lasts_user_msg")):
@@ -276,7 +310,7 @@ class ChatBot(object):
         while len(string) != len(time):
             string.pop(0)
         for i in range(len(time)):
-            message.append((string[i] + " [" + time[i] + "]").casefold())
+            message.append(string[i].casefold())
         return message
     def readFile(self, data_file):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -298,7 +332,7 @@ class ChatBot(object):
         for thing in thing_knowed:
             #print("thing no for = ", thing)
             if not thing.startswith("R:"):
-                self.thing_knowed.append(thing + '\n')
+                self.thing_knowed.append(thing)
                 #print("thing no if  = ", thing)
             else:
                 #print("thing no else  = ", thing)
@@ -308,8 +342,8 @@ class ChatBot(object):
         
         
         
-#data_file = 'data.txt'
-#zapBot = ChatBot(data_file)
-#zapBot.is_new_message()
+data_file = 'data.txt'
+zapBot = ChatBot(data_file)
+zapBot.is_new_message()
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
