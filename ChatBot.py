@@ -18,7 +18,7 @@ from unidecode import unidecode
 
 class ChatBot(object):
 
-    def __init__(self, data_file):
+    def __init__(self, data_file, test):
         
         self.readFile(data_file)
         self.last_thing_knowed = self.thing_knowed[-1].casefold()
@@ -27,7 +27,7 @@ class ChatBot(object):
         
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
         ##pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span
-        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
+        self.css = {"new_message" : "span[class='_38M1B']",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
@@ -36,14 +36,15 @@ class ChatBot(object):
         #pprint.pprint(self.thing_knowed)
         #pprint.pprint(self.answers[-1])
         # Inicializa o webdriver
-        
+        if test != 's':
+            self.css.update({"new_message" : test})
         self.driver = webdriver.Chrome(
             ChromeDriverManager().install())
         # Abre o whatsappweb
         self.driver.get("https://web.whatsapp.com/")
         self.driver.maximize_window()
         # Aguarda alguns segundos para validação manual do QrCode
-        self.driver.implicitly_wait(30)
+        input("Pressione qualquer tecla para iniciar o assistente virtual.")
     
     #Método responsavel por abrir o ultimo chat com uma nova mensangem
     def openLastChat(self, status):
@@ -54,7 +55,7 @@ class ChatBot(object):
             self.openSession(data)
         else:
             self.is_new_message()
-    def getHuman(self, person):
+    def getHuman(self, person, messages):
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).click()
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(self.group_name)
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(Keys.ENTER)
@@ -71,7 +72,7 @@ class ChatBot(object):
                 if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
                     self.send_message(self.answers[-1])
                     print("entrei em if especifico do atendente")
-                    self.getHuman(self.person_name)
+                    self.getHuman(self.person_name, messages)
                     self.session_status = False
                     self.CloseSession()
 
@@ -330,8 +331,8 @@ class ChatBot(object):
         
         
         
-data_file = 'data.txt'
-zapBot = ChatBot(data_file)
-zapBot.is_new_message()
+#data_file = 'data.txt'
+#zapBot = ChatBot(data_file)
+#zapBot.is_new_message()
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
