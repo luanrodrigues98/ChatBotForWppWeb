@@ -168,7 +168,11 @@ class ChatBot(object):
         #messages = self.get_new_message()
         #pprint.pprint(messages)
         #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-        self.send_message(self.thing_knowed)
+        messages = self.get_new_message()
+        if self.isKnowed(messages):
+            self.doubtOrNot(messages)
+        else:
+            self.send_message(self.thing_knowed)
         messages = self.get_new_message()
         #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
         ###################################################################################
@@ -186,6 +190,12 @@ class ChatBot(object):
     #  else:
 
     # self.aux = self.aux + 1
+    def isKnowed(self,messages):
+        if ((bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) or 
+            (bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])]))):
+            return True
+        else: 
+            return False
 
     #Método responsavel por verificar se o cliente possui alguma dúvida.
     def doubtOrNot(self, messages):
@@ -196,8 +206,7 @@ class ChatBot(object):
             self.routineOfSession(messages, eq)
             self.session_status = True
             return
-        elif ((bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) or
-            bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])])):
+        elif (self.isKnowed(messages) ):
                 self.send_answer(messages)
                 self.routineOfSession(messages, eq)
                 self.session_status = True
