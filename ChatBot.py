@@ -27,7 +27,7 @@ class ChatBot(object):
         
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
         ##pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span
-        self.css = {"new_message" : "span[class='_38M1B']",
+        self.css = {"new_message" : "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span",
                     "chat_box" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div._2A8P4 > div > div._2_1wd.copyable-text.selectable-text",
                     "send_button" : "#main > footer > div.vR1LG._3wXwX.copyable-area > div:nth-child(3) > button > span",
                     "lasts_user_msg" : "#main",
@@ -74,6 +74,7 @@ class ChatBot(object):
                     self.getHuman(self.person_name)
                     self.session_status = False
                     self.CloseSession()
+
     def waitAnswer(self, messages):
         count_loops = 0 
         while messages[-1] == unidecode(self.last_thing_knowed):
@@ -85,73 +86,19 @@ class ChatBot(object):
             if count_loops == 12:
                 #print("estou em if count_loops == 12")
                 break
-        if count_loops == 12:
-            print("estou em if count_loops == 12 fora do while")
-            self.session_status = False
-            self.CloseSession()
-        
-    def routineOfSession(self, messages, op):
-        print("entrei em routineOfSession:")
-        print(messages[-1])
-        print(self.last_thing_knowed)
-        print(messages[-1] == unidecode(self.last_thing_knowed))
-        print("entrei em routineOfSession:")
-        '''
-        while op(messages[-1], unidecode(self.last_thing_knowed)):
-            print("messages[-1] != unidecode(self.last_thing_knowed)")
-            time.sleep(1)
-            messages = self.get_new_message()
-            #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-            print("messages[-1] != self.last_thing_knowed, no while = ", (messages[-1] != self.last_thing_knowed))
-            print("Messages[-1] no while = ", messages[-1])
+            elif messages[-1] != unidecode(self.last_thing_knowed):
+                print("estou em elif messages[-1] != unidecode(self.last_thing_knowed)")
+                return
             
-        '''
-        time.sleep(1)
-        messages = self.get_new_message()
-        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-        
-        count_loops = 0
-        while messages[-1] == unidecode(self.last_thing_knowed):
-            print("Estou em while messages[-1] == unidecode(self.last_thing_knowed) e count_loops = ", count_loops)
-            time.sleep(5)
-            messages = self.get_new_message()
-            #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
-            count_loops = count_loops + 1
-            if count_loops == 12:
-                #print("estou em if count_loops == 12")
-                break
         if count_loops == 12:
             print("estou em if count_loops == 12 fora do while")
             self.session_status = False
             self.CloseSession()
         
-        #self.waitAnswer(messages)
-        self.send_answer(messages)
-        '''
-        if messages[-1] != unidecode(self.last_thing_knowed):
-            for i in range(len(self.thing_knowed)):
-                print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
-                print("self.answers[int(self.thing_knowed[i][0]) - 1] = "+ str(self.answers[int(self.thing_knowed[i][0]) - 1]) +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())]))
-                if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
-                    self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
-                if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
-                    self.send_message(self.answers[-1])
-                    print("entrei em if especifico do atendente")
-                    self.getHuman(self.person_name)
-                    self.session_status = False
-                    self.CloseSession()
-        '''
-        time.sleep(1)
-        #self.waitAnswer(messages)
-        messages = self.get_new_message()
-        if messages[-1] == self.last_thing_knowed:
-            self.session_status = False
-            self.CloseSession()
-        else:
-            self.send_message([self.need_more_help])
-        
+    def moreHelp(self, messages):
+        self.send_message([self.need_more_help])
         more_help = ['sim', 's', 'simmm', 'simm', 'pode']
-        no_more_help = ['nao', 'não', 'n']
+        no_more_help = ['nao', 'não', 'n', 'obrigado', 'obrigada', 'obg', 'valeu', 'vlw']
         messages = self.get_new_message()
         #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
         time.sleep(1)
@@ -176,6 +123,23 @@ class ChatBot(object):
             print("estou em if count_loops == 12 fora do while")
             self.session_status = False
             self.CloseSession()
+
+    def routineOfSession(self, messages, op):
+        time.sleep(1)
+        messages = self.get_new_message()
+        #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
+        self.waitAnswer(messages)
+        print("voltei para routineOfSession")
+        messages = self.get_new_message()
+        self.send_answer(messages)
+        time.sleep(1)
+        #self.waitAnswer(messages)
+        messages = self.get_new_message()
+        if messages[-1] == self.last_thing_knowed:
+            self.session_status = False
+            self.CloseSession()
+        else:
+            self.moreHelp(messages)
         
         time.sleep(1)
         messages = self.get_new_message()
@@ -228,12 +192,12 @@ class ChatBot(object):
             self.routineOfSession(messages, eq)
             self.session_status = True
             return
-        elif (self.isKnowed(messages) ):
+        elif (self.isKnowed(messages)):
                 self.send_answer(messages)
                 self.routineOfSession(messages, eq)
                 self.session_status = True
                 return
-        elif messages[-1].startswith('n'):
+        elif messages[-1].startswith('n') or messages[-1].startswith('o') or messages[-1].startswith('v'):
             print("estou em elif messages[-1].startswith('n')")
             self.send_message([self.bye])
             self.session_status = False
@@ -296,11 +260,6 @@ class ChatBot(object):
         for i in range(len(data)):
             data[i] = unidecode(data[i])
         
-        
-        #
-        # print("----- imprimindo data--------")
-        #pprint.pprint(data)
-        #print("----- imprimindo data--------")
         return data
 
 
@@ -352,8 +311,6 @@ class ChatBot(object):
         #pprint.pprint(data)
         for row in data:
             if not row.startswith('#') and not row.startswith('\n'):
-                #print("row = ", row)
-                #print("row.strip() = ", row.strip())
                 list.append(row.strip())
         #pprint.pprint(list)
         self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.bye = list
