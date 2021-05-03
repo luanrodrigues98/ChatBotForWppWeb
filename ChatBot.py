@@ -78,6 +78,7 @@ class ChatBot(object):
                     self.getHuman(self.person_name, messages)
     def notUnderstand(self, helper, messages):
         if self.helper == 2:
+            self.send_message(self.not_ustd_msg)
             self.getHuman(self.person_name, messages)
             return
         else:
@@ -342,7 +343,7 @@ class ChatBot(object):
             if not row.startswith('#') and not row.startswith('\n'):
                 list.append(row.strip())
         #pprint.pprint(list)
-        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.not_understand, self.bye = list
+        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.not_understand, self.not_ustd_msg, self.bye = list
         self.thing_knowed = []
         self.answers = []
         #pprint.pprint(thing_knowed)
