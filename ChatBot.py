@@ -24,7 +24,7 @@ class ChatBot(object):
         self.last_thing_knowed = self.thing_knowed[-1].casefold()
         self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
-        
+        self.helper = 0
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
         ##pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span
         self.css = {"new_message" : "span[class='_38M1B']",
@@ -61,6 +61,9 @@ class ChatBot(object):
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(Keys.ENTER)
         self.send_message(str(person) +" "+ self.help_msg +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
         time.sleep(2)
+        self.session_status = False
+        self.CloseSession()
+
     #Método responsavel por verificar se o cliente tem alguma duvida.
     def send_answer(self, messages):
         if messages[-1] != unidecode(self.last_thing_knowed):
@@ -73,9 +76,12 @@ class ChatBot(object):
                     self.send_message(self.answers[-1])
                     print("entrei em if especifico do atendente")
                     self.getHuman(self.person_name, messages)
-                    self.session_status = False
-                    self.CloseSession()
-
+    def notUnderstand(self, helper, messages):
+        if self.helper == 2:
+            self.getHuman(self.person_name, messages)
+            return
+        else:
+            return
     def waitAnswer(self, messages):
         count_loops = 0 
         while messages[-1] == unidecode(self.last_thing_knowed):
@@ -89,7 +95,14 @@ class ChatBot(object):
                 break
             elif messages[-1] != unidecode(self.last_thing_knowed):
                 print("estou em elif messages[-1] != unidecode(self.last_thing_knowed)")
-                return
+                if not self.isKnowed(messages):
+                    print("estou em elif self.isKnowed(messages)")
+                    self.send_message(self.not_understand)
+                    self.helper = self.helper + 1
+                    self.notUnderstand(self.helper, messages)
+                else:
+                    print("estou em else return")
+                    return
             
         if count_loops == 12:
             print("estou em if count_loops == 12 fora do while")
@@ -115,6 +128,16 @@ class ChatBot(object):
             messages = self.get_new_message()
             #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
             count_loops = count_loops + 1
+            if messages[-1] != self.need_more_help:
+                print("estou em elif messages[-1] != unidecode(self.last_thing_knowed)")
+                if not self.isKnowed(messages):
+                    print("estou em elif self.isKnowed(messages)")
+                    self.send_message([self.not_understand])
+                    self.helper = self.helper + 1
+                    self.notUnderstand(self.helper, messages)
+                else:
+                    print("estou em else return")
+                    return
             if count_loops == 12:
                 #print("estou em if count_loops == 12")
                 break
@@ -207,13 +230,14 @@ class ChatBot(object):
     #Metodo responsavel por fechar a sessão de atendimento
     def CloseSession(self):
         if self.session_status == False:
+            self.helper = 0
             self.is_new_message()
-            self.aux = 0
         else:
             pass
 
     #Metodo responsavel por verificar se existe alguma mensagem
     def is_new_message(self):
+        
         #<span class="_38M1B" aria-label="6 mensagens não lidas">6</span>
         #pane-side > div:nth-child(1) > div > div > div:nth-child(10) > div > div > div.TbtXF > div._1SjZ2 > div._15smv > span:nth-child(1) > div > span
         try: 
@@ -222,7 +246,11 @@ class ChatBot(object):
             elif not self.driver.find_element(By.CSS_SELECTOR, self.css.get("new_message")):
                 self.is_new_message()
         except NoSuchElementException:
-            pass
+            self.aux = self.aux + 1
+            print("estou em except NoSuchElementException e numero de vezes = ", self.aux)
+            time.sleep(10)
+            self.is_new_message()
+            
     #Metodo responsavel por enviar uma mensagem
     def send_message(self, message = None, help1 = False):
         if message is None:
@@ -314,7 +342,7 @@ class ChatBot(object):
             if not row.startswith('#') and not row.startswith('\n'):
                 list.append(row.strip())
         #pprint.pprint(list)
-        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.bye = list
+        self.hello_msg, *thing_knowed, self.need_more_help, self.doubt, self.group_name, self.help_msg, self.not_understand, self.bye = list
         self.thing_knowed = []
         self.answers = []
         #pprint.pprint(thing_knowed)
