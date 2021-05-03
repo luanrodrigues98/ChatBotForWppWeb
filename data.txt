@@ -26,6 +26,8 @@ Só eu
 
 #Como a mensagem deve ser enviada para o grupo:
  precisou de ajuda às 
+#Mensagem a ser enviada quando o assistente não entendi o que o cliente falou.
+Desculpe, não entendi.
 
 #Se o cliente não tiver mais dúvidas, mensagem de despedida.
 Muito obrigado pelo contato e tenha um ótimo dia!
