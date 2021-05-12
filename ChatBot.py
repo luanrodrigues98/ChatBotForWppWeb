@@ -45,6 +45,7 @@ class ChatBot(object):
         self.driver.maximize_window()
         # Aguarda alguns segundos para validação manual do QrCode
         input("Pressione qualquer tecla para iniciar o assistente virtual.")
+        print("------------ ChatBot INICIADO -----------------------------")
     
     #Método responsavel por abrir o ultimo chat com uma nova mensangem
     def openLastChat(self, status):
@@ -66,13 +67,13 @@ class ChatBot(object):
 
     #Método responsavel por verificar se o cliente tem alguma duvida.
     def send_answer(self, messages):
-        if messages[-1] != unidecode(self.last_thing_knowed):
+        if messages[-1] != unidecode(self.last_thing_knowed.casefold()):
             for i in range(len(self.thing_knowed)):
                 #print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
                 #print("self.answers[int(self.thing_knowed[i][0]) - 1] = "+ str(self.answers[int(self.thing_knowed[i][0]) - 1]) +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())]))
-                if messages[-1].startswith(self.thing_knowed[i][0]) or messages[-1].endswith(self.thing_knowed[i][-9:-1]):
+                if messages[-1].startswith(unidecode(self.thing_knowed[i][0].casefold())) or messages[-1].endswith(unidecode(self.thing_knowed[i][-9:-1].casefold())):
                     self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
-                if messages[-1].startswith(self.thing_knowed[-1][0]) or messages[-1].endswith(self.thing_knowed[-1][-9:-1]):
+                if messages[-1].startswith(unidecode(self.thing_knowed[-1][0].casefold())) or messages[-1].endswith(unidecode(self.thing_knowed[-1][-9:-1].casefold())):
                     self.send_message(self.answers[-1])
                     print("entrei em if especifico do atendente")
                     self.getHuman(self.person_name, messages)
@@ -85,7 +86,7 @@ class ChatBot(object):
             return
     def waitAnswer(self, messages):
         count_loops = 0 
-        while messages[-1] == unidecode(self.last_thing_knowed):
+        while messages[-1] == unidecode(self.last_thing_knowed.casefold()):
             print("Estou em while messages[-1] == unidecode(self.last_thing_knowed) e count_loops = ", count_loops)
             time.sleep(5)
             messages = self.get_new_message()
@@ -94,7 +95,7 @@ class ChatBot(object):
             if count_loops == 12:
                 #print("estou em if count_loops == 12")
                 break
-            elif messages[-1] != unidecode(self.last_thing_knowed):
+            elif messages[-1] != unidecode(self.last_thing_knowed.casefold()):
                 print("estou em elif messages[-1] != unidecode(self.last_thing_knowed)")
                 if not self.isKnowed(messages):
                     print("estou em elif self.isKnowed(messages)")
@@ -122,23 +123,26 @@ class ChatBot(object):
         
         count_loops = 0
         while ((not messages[-1] in more_help) and (not messages[-1] in no_more_help) and
-                (not bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) and
-                not bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])])):
+                (not bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(unidecode(self.thing_knowed[i][0].casefold()))])) and
+                not bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(unidecode(self.thing_knowed[i][-9:-1].casefold()))])):
             print("estou em not messages[-1] in (more_help or no_more_help)")
             time.sleep(5)
             messages = self.get_new_message()
             #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
             count_loops = count_loops + 1
-            if messages[-1] != self.need_more_help:
-                print("estou em elif messages[-1] != unidecode(self.last_thing_knowed)")
-                if not self.isKnowed(messages):
+            if messages[-1] != unidecode(self.need_more_help.casefold()) and messages[-1] != unidecode(self.not_understand.casefold()):
+                print("estou em if messages[-1] != unidecode(self.need_more_help.casefold())")
+                if (messages[-1] in more_help) or (messages[-1] in no_more_help) or messages[-1].startswith('s') or messages[-1].startswith('n'):
+                    print("estou em if (messages[-1] in more_help) or (messages[-1] in no_more_help):")
+                    return
+                elif not self.isKnowed(messages):
                     print("estou em elif self.isKnowed(messages)")
                     self.send_message([self.not_understand])
                     self.helper = self.helper + 1
                     self.notUnderstand(self.helper, messages)
-                else:
-                    print("estou em else return")
-                    return
+            elif messages[-1] == unidecode(self.not_understand.casefold()):
+                print("estou em elif messages[-1] == unidecode(self.not_understand.casefold())")
+                self.send_message([self.need_more_help])
             if count_loops == 12:
                 #print("estou em if count_loops == 12")
                 break
@@ -202,8 +206,8 @@ class ChatBot(object):
 
     # self.aux = self.aux + 1
     def isKnowed(self,messages):
-        if ((bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(self.thing_knowed[i][0])])) or 
-            (bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(self.thing_knowed[i][-9:-1])]))):
+        if ((bool([i for i in range(len(self.thing_knowed)) if messages[-1].startswith(unidecode(self.thing_knowed[i][0].casefold()))])) or 
+            (bool([i for i in range(len(self.thing_knowed)) if messages[-1].endswith(unidecode(self.thing_knowed[i][-9:-1].casefold()))]))):
             return True
         else: 
             return False
@@ -298,7 +302,7 @@ class ChatBot(object):
     def handler_string(self, string):
         import re
         from datetime import datetime
-        time = []
+        time1 = []
         message = []
         r = re.compile('.{2}:.{2}')
         audio = re.compile('.{1}:.{2}')
@@ -306,7 +310,7 @@ class ChatBot(object):
             if len(i) == 5:
                 if r.match(i):
                     aux = string.index(i)
-                    time.append(i)
+                    time1.append(i)
                     string.pop(aux)
         for i in string:
             
@@ -327,9 +331,14 @@ class ChatBot(object):
                 i = 0
             else:
                 i = i + 1 
-        while len(string) != len(time):
-            string.pop(0)
-        for i in range(len(time)):
+        while len(string) != len(time1):
+            try:
+                string.pop(0)
+            except IndexError:
+                print("to em except IndexError")
+                time.sleep(1)
+                self.get_new_message()
+        for i in range(len(time1)):
             message.append(string[i].casefold())
         return message
     def readFile(self, data_file):
@@ -361,7 +370,7 @@ class ChatBot(object):
         
         
 #data_file = 'data.txt'
-#zapBot = ChatBot(data_file)
+#zapBot = ChatBot(data_file, 's')
 #zapBot.is_new_message()
 #zapBot.get_new_message()
 #main > div._2wjK5 > div > div > div._11liR > div:nth-child(29) > div > div > div > div.xkqQM.copyable-text > div > span._3-8er.selectable-text.copyable-text > span
