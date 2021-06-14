@@ -387,8 +387,8 @@ class ChatBot(object):
         
 data_file = 'data.txt'
 test = "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF"
-zapBot = ChatBot(data_file, test)
-zapBot.is_new_message()
+#zapBot = ChatBot(data_file, test)
+#zapBot.is_new_message()
 #zapBot.readFile()        
 #data_file = 'data.txt'
 #zapBot = ChatBot(data_file, 's')
