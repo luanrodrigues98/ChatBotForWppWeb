@@ -25,6 +25,7 @@ class ChatBot(object):
         self.week_days = ['HOJE',"digitando...","online", "ONTEM", "TERÇA-FEIRA", "SEGUNDA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
         self.session_status = False
         self.helper = 0
+        self.aux = 0
         #span[class='_38M1B'] -> Endereço de identificação das novas mensagens 
         ##pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF > div._2pkLM > div._3Dr46 > span
         self.css = {"new_message" : "span[class='_38M1B']",
@@ -36,6 +37,7 @@ class ChatBot(object):
         #pprint.pprint(self.thing_knowed)
         #pprint.pprint(self.answers[-1])
         # Inicializa o webdriver
+        
         if test != 's':
             self.css.update({"new_message" : test})
         self.driver = webdriver.Chrome(
@@ -56,14 +58,17 @@ class ChatBot(object):
             self.openSession(data)
         else:
             self.is_new_message()
-    def getHuman(self, person, messages):
+    def getHuman(self, person, messages, param):
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).click()
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(self.group_name)
         self.driver.find_element(By.CSS_SELECTOR, self.css.get("search_box")).send_keys(Keys.ENTER)
-        self.send_message(str(person) +" "+ self.help_msg +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
-        time.sleep(2)
-        self.session_status = False
-        self.CloseSession()
+        if param == True:
+            self.send_message(str(person) +" "+ self.help_msg +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())])) 
+            time.sleep(2)
+            self.session_status = False
+            self.CloseSession()
+        else:
+            return
 
     #Método responsavel por verificar se o cliente tem alguma duvida.
     def send_answer(self, messages):
@@ -72,15 +77,22 @@ class ChatBot(object):
                 #print("messages[-1].startswith(self.thing_knowed[i][0]) = ", messages[-1].startswith(self.thing_knowed[i][0]))
                 #print("self.answers[int(self.thing_knowed[i][0]) - 1] = "+ str(self.answers[int(self.thing_knowed[i][0]) - 1]) +" "+ str([time.strftime("%H:%M:%S, %d/%m/%Y",time.localtime())]))
                 if messages[-1].startswith(unidecode(self.thing_knowed[i][0].casefold())) or messages[-1].endswith(unidecode(self.thing_knowed[i][-9:-1].casefold())):
-                    self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
+                    try:
+                        self.send_message(self.answers[int(self.thing_knowed[i][0]) - 1])
+                    except ValueError:
+                        print("to em except ValueError linha - 82")
+                        messages = self.get_new_message()
+                        aux = unidecode(messages[-1].casefold())
+                        if aux.startswith('oi'):
+                            self.send_message(self.thing_knowed)
                 if messages[-1].startswith(unidecode(self.thing_knowed[-1][0].casefold())) or messages[-1].endswith(unidecode(self.thing_knowed[-1][-9:-1].casefold())):
                     self.send_message(self.answers[-1])
                     print("entrei em if especifico do atendente")
-                    self.getHuman(self.person_name, messages)
+                    self.getHuman(self.person_name, messages, True)
     def notUnderstand(self, helper, messages):
         if self.helper == 2:
             self.send_message(self.not_ustd_msg)
-            self.getHuman(self.person_name, messages)
+            self.getHuman(self.person_name, messages, True)
             return
         else:
             return
@@ -185,8 +197,10 @@ class ChatBot(object):
         #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
         messages = self.get_new_message()
         if self.isKnowed(messages):
+            print("to no if de isknowed em openSession")
             self.doubtOrNot(messages)
         else:
+            print("to no else de isknowed em openSession")
             self.send_message(self.thing_knowed)
         messages = self.get_new_message()
         #messages[-1] = messages[-1].replace(messages[-1][len(messages[-1]) - 8:], '')
@@ -222,10 +236,10 @@ class ChatBot(object):
             self.session_status = True
             return
         elif (self.isKnowed(messages)):
-                self.send_answer(messages)
-                self.routineOfSession(messages, eq)
-                self.session_status = True
-                return
+            self.send_answer(messages)
+            self.routineOfSession(messages, eq)
+            self.session_status = True
+            return
         elif messages[-1].startswith('n') or messages[-1].startswith('o') or messages[-1].startswith('v'):
             print("estou em elif messages[-1].startswith('n')")
             self.send_message([self.bye])
@@ -252,6 +266,9 @@ class ChatBot(object):
                 self.is_new_message()
         except NoSuchElementException:
             self.aux = self.aux + 1
+            if self.aux == 1:
+                self.getHuman("",[""], False)
+            
             print("estou em except NoSuchElementException e numero de vezes = ", self.aux)
             time.sleep(10)
             self.is_new_message()
@@ -366,9 +383,13 @@ class ChatBot(object):
                 thing = thing.replace(thing[:7], '')
                 
                 self.answers.append(thing)
+        #print(self.thing_knowed)
         
-        
-        
+data_file = 'data.txt'
+test = "#pane-side > div:nth-child(1) > div > div > div:nth-child(11) > div > div > div.TbtXF"
+zapBot = ChatBot(data_file, test)
+zapBot.is_new_message()
+#zapBot.readFile()        
 #data_file = 'data.txt'
 #zapBot = ChatBot(data_file, 's')
 #zapBot.is_new_message()
